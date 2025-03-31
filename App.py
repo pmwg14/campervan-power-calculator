@@ -50,7 +50,7 @@ with st.form("device_form"):
             with cols[1]:
                 watts = st.number_input("Watts", min_value=1, value=device["watts"], key=f"watts_{i}")
             with cols[2]:
-                hours = st.number_input("Hours/day", min_value=0.0, max_value=24.0, step=0.5, value=device["hours"], key=f"hours_{i}")
+                hours = st.number_input("Hours/day", min_value=0.0, max_value=24.0, step=0.5, value=float(device["hours"]), key=f"hours_{i}")
             with cols[3]:
                 enabled = st.checkbox("On?", value=device["enabled"], key=f"enabled_{i}")
             if enabled:
