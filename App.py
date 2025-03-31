@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-st.set_page_config(page_title="Alfred v5 – Power Calculator", layout="wide")
+st.set_page_config(page_title="Alfred – Power Calculator v7", layout="wide")
 
 # --- Preset 12V Devices ---
 preset_devices = [
@@ -14,7 +14,7 @@ preset_devices = [
     {"name": "Diesel Heater", "watts": 20, "hours": 2, "enabled": True},
     {"name": "Water Pump", "watts": 50, "hours": 0.2, "enabled": False},
     {"name": "Phone Charging", "watts": 10, "hours": 2, "enabled": True},
-    {"name": "Tablet Charging", "watts": 15, "hours": 1, "enabled": False},
+    {"name": "Starlink", "watts": 45, "hours": 10, "enabled": True},
     {"name": "Router (GL.iNet)", "watts": 5, "hours": 24, "enabled": True},
     {"name": "Renogy One Core", "watts": 2, "hours": 24, "enabled": True}
 ]
@@ -82,10 +82,9 @@ df_stacked = pd.DataFrame({
     "Type": ["Input", "Input", "Output"],
     "Wh": [solar_input_daily, alternator_input_daily, daily_usage]
 })
-
 df_stacked["% of Capacity"] = (df_stacked["Wh"] / total_capacity) * 100
 
-# Calculate net gain/loss
+# --- Net Change Calculations ---
 net_wh = solar_input_daily + alternator_input_daily - daily_usage
 net_percent = (net_wh / total_capacity) * 100
 
@@ -103,16 +102,6 @@ st.write(f"**Daily Input (Solar + Alternator):** {daily_input:.0f} Wh")
 st.write(f"**Net Daily Power Balance:** {net_daily:.0f} Wh")
 
 # --- Daily Power Breakdown (Stacked Bar using Altair) ---
-st.subheader("Daily Power Breakdown")
-
-# Build dataframe
-df_stacked = pd.DataFrame({
-    "Source": ["Solar", "Alternator", "Usage"],
-    "Type": ["Input", "Input", "Output"],
-    "Watt-Hours": [solar_input_daily, alternator_input_daily, daily_usage]
-})
-
-# --- Stacked Bar Chart (Input vs Output) ---
 st.subheader("Daily Power Breakdown (% of Total Battery Capacity)")
 
 bar = alt.Chart(df_stacked).mark_bar().encode(
