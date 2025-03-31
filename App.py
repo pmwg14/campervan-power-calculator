@@ -95,11 +95,12 @@ df_net = pd.DataFrame({
 })
 
 # --- Summary ---
+# --- Summary ---
 st.subheader("System Summary")
-st.write(f"**Total Battery Capacity:** {total_capacity} Wh")
-st.write(f"**Daily Usage:** {daily_usage:.0f} Wh")
-st.write(f"**Daily Input (Solar + Alternator):** {daily_input:.0f} Wh")
-st.write(f"**Net Daily Power Balance:** {net_daily:.0f} Wh")
+st.write(f"**Total Battery Capacity:** {total_capacity:.0f} Wh ({total_capacity / 12:.1f} Ah)")
+st.write(f"**Daily Usage:** {daily_usage:.0f} Wh ({daily_usage / 12:.1f} Ah)")
+st.write(f"**Daily Input (Solar + Alternator):** {daily_input:.0f} Wh ({daily_input / 12:.1f} Ah)")
+st.write(f"**Net Daily Power Balance:** {net_daily:.0f} Wh ({net_daily / 12:.1f} Ah)")
 
 # --- Daily Power Breakdown (Stacked Bar using Altair) ---
 st.subheader("Daily Power Breakdown (% of Total Battery Capacity)")
