@@ -144,7 +144,7 @@ else:
     days_rounded = round(days_remaining * 2) / 2  # nearest 0.5
     max_days = 5  # visual scaling – assume anything beyond 5 days is great
     battery_fill = min((days_remaining / max_days) * 100, 100)
-    battery_emoji = "🟩" if battery_fill > 66 else "🟨" if battery_fill > 33 else "🟥"
+    battery_emoji = "🔋" if battery_fill > 99  else "🪫"
     status_text = f"{days_rounded} days of power remaining"
 
 st.markdown(f"**{battery_emoji} {status_text}**")
