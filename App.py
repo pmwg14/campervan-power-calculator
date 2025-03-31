@@ -76,6 +76,25 @@ daily_usage = df["Daily_Wh"].sum()
 daily_input = solar_input_daily + alternator_input_daily
 net_daily = daily_input - daily_usage
 
+# --- Daily Power Breakdown as Percent of Total Capacity ---
+df_stacked = pd.DataFrame({
+    "Source": ["Solar", "Alternator", "Usage"],
+    "Type": ["Input", "Input", "Output"],
+    "Wh": [solar_input_daily, alternator_input_daily, daily_usage]
+})
+
+df_stacked["% of Capacity"] = (df_stacked["Wh"] / total_capacity) * 100
+
+# Calculate net gain/loss
+net_wh = solar_input_daily + alternator_input_daily - daily_usage
+net_percent = (net_wh / total_capacity) * 100
+
+df_net = pd.DataFrame({
+    "Change": ["Net Change"],
+    "Wh": [net_wh],
+    "% of Capacity": [net_percent]
+})
+
 # --- Summary ---
 st.subheader("System Summary")
 st.write(f"**Total Battery Capacity:** {total_capacity} Wh")
@@ -93,15 +112,43 @@ df_stacked = pd.DataFrame({
     "Watt-Hours": [solar_input_daily, alternator_input_daily, daily_usage]
 })
 
-# Create stacked bar chart using Altair
+# --- Stacked Bar Chart (Input vs Output) ---
+st.subheader("Daily Power Breakdown (% of Total Battery Capacity)")
+
 bar = alt.Chart(df_stacked).mark_bar().encode(
     x=alt.X('Type:N', title=None),
-    y=alt.Y('Watt-Hours:Q', title="Watt-Hours"),
+    y=alt.Y('% of Capacity:Q', title="% of Total Capacity"),
     color=alt.Color('Source:N', scale=alt.Scale(scheme='rainbow')),
-    tooltip=['Source', 'Watt-Hours']
+    tooltip=[
+        alt.Tooltip('Source:N'),
+        alt.Tooltip('Wh:Q', title='Watt-Hours'),
+        alt.Tooltip('% of Capacity:Q', format=".1f", title='% of Total Capacity')
+    ]
 ).properties(
-    width=300,
+    width=500,
     height=400
 )
 
 st.altair_chart(bar, use_container_width=True)
+
+# --- Net Change Bar ---
+st.subheader("Net Battery Change (per Day)")
+
+net_bar = alt.Chart(df_net).mark_bar().encode(
+    x=alt.X('Change:N', title=None),
+    y=alt.Y('% of Capacity:Q', title="% of Total Capacity"),
+    color=alt.condition(
+        alt.datum['Wh'] > 0,
+        alt.value("green"),
+        alt.value("red")
+    ),
+    tooltip=[
+        alt.Tooltip('Wh:Q', title='Net Wh'),
+        alt.Tooltip('% of Capacity:Q', format=".1f", title='% of Total Capacity')
+    ]
+).properties(
+    width=500,
+    height=200
+)
+
+st.altair_chart(net_bar, use_container_width=True)
