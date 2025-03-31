@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-import matplotlib.pyplot as plt
 
 st.set_page_config(page_title="Alfred v5 – Power Calculator", layout="wide")
 
@@ -83,29 +82,25 @@ st.write(f"**Daily Usage:** {daily_usage:.0f} Wh")
 st.write(f"**Daily Input (Solar + Alternator):** {daily_input:.0f} Wh")
 st.write(f"**Net Daily Power Balance:** {net_daily:.0f} Wh")
 
-# --- Chart over 7 Days ---
-days = list(range(1, 8))
-usage = [daily_usage] * 7
-solar_input = [solar_input_daily] * 7
-alt_input = [alternator_input_daily] * 7
-total_input = [s + a for s, a in zip(solar_input, alt_input)]
-net_balance = [inp - out for inp, out in zip(total_input, usage)]
+# --- Chart over 7 Days using Streamlit-native charts ---
+st.subheader("7-Day Power Profile")
 
 df_chart = pd.DataFrame({
-    "Day": days,
-    "Usage": usage,
-    "Solar": solar_input,
-    "Alternator": alt_input
+    "Day": list(range(1, 8)),
+    "Usage (Wh)": [daily_usage] * 7,
+    "Solar Input (Wh)": [solar_input_daily] * 7,
+    "Alternator Input (Wh)": [alternator_input_daily] * 7
 })
 
-st.subheader("7-Day Power Profile")
-import matplotlib.pyplot as plt
-fig, ax = plt.subplots()
-ax.bar(df_chart["Day"], df_chart["Usage"], label="Usage", color="red")
-ax.bar(df_chart["Day"], df_chart["Solar"], label="Solar", bottom=df_chart["Alternator"], color="gold")
-ax.bar(df_chart["Day"], df_chart["Alternator"], label="Alternator", bottom=0, color="blue")
-ax.set_ylabel("Watt-Hours")
-ax.set_xlabel("Day")
-ax.set_title("Daily Usage vs Input")
-ax.legend()
-st.pyplot(fig)
+df_chart["Total Input (Wh)"] = df_chart["Solar Input (Wh)"] + df_chart["Alternator Input (Wh)"]
+df_chart["Net Daily Balance (Wh)"] = df_chart["Total Input (Wh)"] - df_chart["Usage (Wh)"]
+
+st.line_chart(
+    df_chart.set_index("Day")[["Usage (Wh)", "Total Input (Wh)"]],
+    use_container_width=True
+)
+
+st.bar_chart(
+    df_chart.set_index("Day")[["Net Daily Balance (Wh)"]],
+    use_container_width=True
+)
