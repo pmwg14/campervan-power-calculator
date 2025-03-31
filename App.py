@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-st.set_page_config(page_title="Alfred – Power Calculator v7.2", layout="wide")
+st.set_page_config(page_title="Power Calculator v7.2, Alfred enabled", layout="wide")
 
 # --- Preset 12V Devices ---
 preset_devices = [
@@ -20,7 +20,7 @@ preset_devices = [
 ]
 
 # --- Sidebar Config ---
-st.sidebar.header("Battery & Input Settings")
+st.sidebar.header("Battery & Power Input Settings")
 battery_count = st.sidebar.slider("Renogy 200Ah Batteries", 1, 4, 3)
 battery_wh = battery_count * 200 * 12
 
@@ -35,7 +35,7 @@ drive_hours = st.sidebar.slider("Drive Time per Day (hrs)", 0.0, 5.0, 0.5, step=
 alternator_input_daily = 480 * drive_hours  # 40A * 12V
 
 # --- Main Interface ---
-st.title("Alfred v5 – Campervan Power Calculator")
+st.title("Power Calculator v7.2, Alfred enabled")
 
 st.subheader("Select Devices to Include")
 show_enabled_only = st.checkbox("Show only selected devices", value=False)
