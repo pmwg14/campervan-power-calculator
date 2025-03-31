@@ -97,7 +97,7 @@ df_stacked = pd.DataFrame({
 bar = alt.Chart(df_stacked).mark_bar().encode(
     x=alt.X('Type:N', title=None),
     y=alt.Y('Watt-Hours:Q', title="Watt-Hours"),
-    color=alt.Color('Source:N', scale=alt.Scale(scheme='category10')),
+    color=alt.Color('Source:N', scale=alt.Scale(scheme='rainbow')),
     tooltip=['Source', 'Watt-Hours']
 ).properties(
     width=500,
