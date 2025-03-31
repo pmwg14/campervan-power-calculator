@@ -3,6 +3,25 @@ import pandas as pd
 
 # Title
 st.title("Campervan Power Budget Calculator")
+# Alfred intro
+with st.expander("Meet Alfred – Your Off-Grid Power Assistant", expanded=True):
+    st.markdown("""
+    **Alfred** (Adventure Logistics Formulation & Renogy Energy Dashboard) is your on-board AI energy butler –  
+    balancing solar, battery, and device usage so you can focus on the road ahead.
+
+    This calculator helps you:
+    - Estimate off-grid runtime based on your exact setup
+    - Balance solar generation with real-world UK conditions
+    - Simulate daily usage for work, mealtimes, or full-day living
+    - Optimise your battery bank before heading off-grid
+
+    Powered by your current configuration of:
+    - **Renogy 12V Lithium Batteries** (600Ah max)
+    - **EcoFlow Delta Pro backup** (optional)
+    - **Flexible solar array + realistic UK sunlight hours**
+
+    _“Ready when you are, sir.”_
+    """)
 
 # --- Sidebar Inputs ---
 st.sidebar.header("Battery & Solar Setup")
