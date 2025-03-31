@@ -26,7 +26,7 @@ battery_wh = battery_count * 200 * 12
 eco_flow_toggle = st.sidebar.checkbox("Add EcoFlow Delta Pro (3.6kWh)")
 total_capacity = battery_wh + (3600 if eco_flow_toggle else 0)
 
-solar_watts = st.sidebar.number_input("Solar Panel Total (W)", value=400, step=10)
+solar_watts = st.sidebar.number_input("Solar Panel Total (W)", value=360, step=10)
 solar_hours = st.sidebar.slider("Solar Hours per Day", 0, 10, 4)
 solar_input_daily = solar_watts * solar_hours
 
