@@ -20,19 +20,19 @@ with st.expander("Meet Alfred – Your Off-Grid Power Assistant", expanded=True)
     - **EcoFlow Delta Pro backup** (optional)
     - **Flexible solar array + realistic UK sunlight hours**
 
-    _“Ready when you are, sir.”_
+    _“Ready when you are, Warry.”_
     """)
 
 # --- Sidebar Inputs ---
 st.sidebar.header("Battery & Solar Setup")
 
 # 1. Battery toggle (Renogy Core 200Ah units)
-battery_count = st.sidebar.number_input("Number of Renogy 200Ah Batteries", min_value=1, max_value=4, value=3)
+battery_count = st.sidebar.number_input("Number of Renogy 200Ah Batteries", min_value=1, max_value=4)
 battery_wh = battery_count * 200 * 12  # 200Ah × 12V
 
 # 2. Solar panel entry (number and wattage per panel)
-num_panels = st.sidebar.number_input("Number of Solar Panels", min_value=1, max_value=10, value=2)
-watts_per_panel = st.sidebar.number_input("Wattage per Panel (W)", min_value=50, max_value=500, value=200)
+num_panels = st.sidebar.number_input("Number of Solar Panels", min_value=1, max_value=10)
+watts_per_panel = st.sidebar.number_input("Wattage per Panel (W)", min_value=50, max_value=500)
 total_solar_watts = num_panels * watts_per_panel
 
 # 3. Solar hour presets
