@@ -100,7 +100,7 @@ bar = alt.Chart(df_stacked).mark_bar().encode(
     color=alt.Color('Source:N', scale=alt.Scale(scheme='rainbow')),
     tooltip=['Source', 'Watt-Hours']
 ).properties(
-    width=500,
+    width=300,
     height=400
 )
 
