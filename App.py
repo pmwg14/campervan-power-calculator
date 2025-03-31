@@ -1,6 +1,7 @@
 import streamlit as st
 import pandas as pd
 import altair as alt
+import time
 
 st.set_page_config(page_title="Power Calculator v7.2, Alfred enabled", layout="wide")
 
@@ -121,24 +122,71 @@ bar = alt.Chart(df_stacked).mark_bar().encode(
 
 st.altair_chart(bar, use_container_width=True)
 
-# --- Net Change Bar ---
-st.subheader("Net Battery Change (per Day)")
+# --- Days of Power Remaining ---
+st.subheader("Estimated Days of Power")
 
-net_bar = alt.Chart(df_net).mark_bar().encode(
-    x=alt.X('Change:N', title=None),
-    y=alt.Y('% of Capacity:Q', title="% of Total Capacity"),
-    color=alt.condition(
-        alt.datum['Wh'] > 0,
-        alt.value("green"),
-        alt.value("red")
-    ),
-    tooltip=[
-        alt.Tooltip('Wh:Q', title='Net Wh'),
-        alt.Tooltip('% of Capacity:Q', format=".1f", title='% of Total Capacity')
-    ]
-).properties(
-    width=500,
-    height=200
+if daily_usage <= daily_input:
+    st.success("You're generating more power than you use — battery will last indefinitely.")
+else:
+    days_remaining = total_capacity / (daily_usage - daily_input)
+    days_rounded = round(days_remaining * 2) / 2  # round to nearest 0.5
+    st.info(f"At this usage level, your battery will last **{days_rounded} days**.")
+
+# --- Battery Visual Indicator ---
+st.subheader("Battery Endurance Visual")
+
+if daily_usage <= daily_input:
+    battery_fill = 100
+    status_text = "Fully Sustainable – Infinite Runtime"
+    battery_emoji = "🔋"
+else:
+    days_remaining = total_capacity / (daily_usage - daily_input)
+    days_rounded = round(days_remaining * 2) / 2  # nearest 0.5
+    max_days = 5  # visual scaling – assume anything beyond 5 days is great
+    battery_fill = min((days_remaining / max_days) * 100, 100)
+    battery_emoji = "🟩" if battery_fill > 66 else "🟨" if battery_fill > 33 else "🟥"
+    status_text = f"{days_rounded} days of power remaining"
+
+st.markdown(f"**{battery_emoji} {status_text}**")
+st.progress(int(battery_fill))
+
+# --- Net Change Metric ---
+st.subheader("Net Battery Change (Per Day)")
+
+net_label = f"{net_daily:.0f} Wh ({net_daily / 12:.1f} Ah)"
+net_direction = "Charging" if net_daily > 0 else "Draining"
+delta_colour = "normal" if net_daily == 0 else ("inverse" if net_daily > 0 else "off")
+
+st.metric(
+    label=f"Power Trend: {net_direction}",
+    value=net_label,
+    delta=f"{net_daily:.0f} Wh/day",
 )
 
-st.altair_chart(net_bar, use_container_width=True)
+# --- Rolling Quote Footer ---
+import random
+
+quotes = [
+    "“Because it’s there.” – George Mallory",
+    "“The best view comes after the hardest climb.” – Unknown",
+    "“It is not the mountain we conquer, but ourselves.” – Sir Edmund Hillary",
+    "“Mountains teach that not everything in life can be rationally explained.” – Aleksander Lwow",
+    "“Getting to the top is optional. Getting down is mandatory.” – Ed Viesturs",
+    "“A man does not climb a mountain without bringing some of it away with him.” – Martin Conway",
+    "“There are no shortcuts to any place worth going.” – Beverly Sills",
+    "“In every walk with nature, one receives far more than he seeks.” – John Muir",
+    "“Climb the mountain not to plant your flag, but to embrace the challenge.” – David McCullough Jr.",
+    "“Only those who risk going too far can possibly find out how far they can go.” – T.S. Eliot"
+]
+
+st.markdown("---")
+quote_box = st.empty()
+
+if st.button("Start Quote Rotation"):
+    for _ in range(100):  # runs for ~100 cycles (adjust as you like)
+        quote = random.choice(quotes)
+        quote_box.markdown(
+            f"<div style='text-align: center; font-style: italic; opacity: 0.6;'>{quote}</div>",
+            unsafe_allow_html=True
+        )
+        time.sleep(5)
