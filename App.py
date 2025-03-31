@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import altair as alt
 
 st.set_page_config(page_title="Alfred v5 – Power Calculator", layout="wide")
 
@@ -82,25 +83,25 @@ st.write(f"**Daily Usage:** {daily_usage:.0f} Wh")
 st.write(f"**Daily Input (Solar + Alternator):** {daily_input:.0f} Wh")
 st.write(f"**Net Daily Power Balance:** {net_daily:.0f} Wh")
 
-# --- Chart over 7 Days using Streamlit-native charts ---
-st.subheader("7-Day Power Profile")
+# --- Daily Power Breakdown (Stacked Bar using Altair) ---
+st.subheader("Daily Power Breakdown")
 
-df_chart = pd.DataFrame({
-    "Day": list(range(1, 8)),
-    "Usage (Wh)": [daily_usage] * 7,
-    "Solar Input (Wh)": [solar_input_daily] * 7,
-    "Alternator Input (Wh)": [alternator_input_daily] * 7
+# Build dataframe
+df_stacked = pd.DataFrame({
+    "Source": ["Solar", "Alternator", "Usage"],
+    "Type": ["Input", "Input", "Output"],
+    "Watt-Hours": [solar_input_daily, alternator_input_daily, daily_usage]
 })
 
-df_chart["Total Input (Wh)"] = df_chart["Solar Input (Wh)"] + df_chart["Alternator Input (Wh)"]
-df_chart["Net Daily Balance (Wh)"] = df_chart["Total Input (Wh)"] - df_chart["Usage (Wh)"]
-
-st.line_chart(
-    df_chart.set_index("Day")[["Usage (Wh)", "Total Input (Wh)"]],
-    use_container_width=True
+# Create stacked bar chart using Altair
+bar = alt.Chart(df_stacked).mark_bar().encode(
+    x=alt.X('Type:N', title=None),
+    y=alt.Y('Watt-Hours:Q', title="Watt-Hours"),
+    color=alt.Color('Source:N', scale=alt.Scale(scheme='category10')),
+    tooltip=['Source', 'Watt-Hours']
+).properties(
+    width=500,
+    height=400
 )
 
-st.bar_chart(
-    df_chart.set_index("Day")[["Net Daily Balance (Wh)"]],
-    use_container_width=True
-)
+st.altair_chart(bar, use_container_width=True)
