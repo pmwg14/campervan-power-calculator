@@ -8,8 +8,8 @@ st.set_page_config(page_title="Power Calculator v7.2, Alfred enabled", layout="w
 # --- Preset 12V Devices ---
 preset_devices = [
     {"name": "LED Puck Lights", "watts": 12, "hours": 6, "enabled": True},
-    {"name": "LED Strip Light", "watts": 6, "hours": 4, "enabled": True},
-    {"name": "Reading Light", "watts": 3, "hours": 2, "enabled": False},
+    {"name": "LED Strip Light", "watts": 60, "hours": 4, "enabled": True},
+    {"name": "Laptop", "watts": 65, "hours": 8, "enabled": False},
     {"name": "Compressor Fridge", "watts": 50, "hours": 8, "enabled": True},
     {"name": "MaxxFan", "watts": 30, "hours": 4, "enabled": True},
     {"name": "Diesel Heater", "watts": 20, "hours": 2, "enabled": True},
