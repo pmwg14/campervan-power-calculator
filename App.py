@@ -9,8 +9,8 @@ st.set_page_config(page_title="Power Calculator v7.2, Alfred enabled", layout="w
 preset_devices = [
     {"name": "LED Puck Lights", "watts": 12, "hours": 6, "enabled": True},
     {"name": "LED Strip Light", "watts": 60, "hours": 4, "enabled": True},
-    {"name": "Laptop", "watts": 65, "hours": 8, "enabled": False},
-    {"name": "Compressor Fridge", "watts": 50, "hours": 8, "enabled": True},
+    {"name": "Laptop", "watts": 65, "hours": 8, "enabled": True},
+    {"name": "Compressor Fridge", "watts": 50, "hours": 10, "enabled": True},
     {"name": "MaxxFan", "watts": 30, "hours": 4, "enabled": True},
     {"name": "Diesel Heater", "watts": 20, "hours": 2, "enabled": True},
     {"name": "Water Pump", "watts": 50, "hours": 0.2, "enabled": False},
@@ -144,7 +144,7 @@ else:
     days_rounded = round(days_remaining * 2) / 2  # nearest 0.5
     max_days = 5  # visual scaling – assume anything beyond 5 days is great
     battery_fill = min((days_remaining / max_days) * 100, 100)
-    battery_emoji = "🔋" if battery_fill > 99  else "🪫"
+    battery_emoji = "🔋" if battery_fill > 5  else "🪫"
     status_text = f"{days_rounded} days of power remaining"
 
 st.markdown(f"**{battery_emoji} {status_text}**")
