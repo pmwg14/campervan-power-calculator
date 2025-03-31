@@ -1,118 +1,111 @@
-
 import streamlit as st
 import pandas as pd
-import math
+import matplotlib.pyplot as plt
 
-st.set_page_config(page_title="Alfred Power Dashboard", layout="wide")
+st.set_page_config(page_title="Alfred v5 – Power Calculator", layout="wide")
 
-# --- DARK MODE TOGGLE ---
-dark_mode = st.sidebar.toggle("Dark Mode", value=False)
-if dark_mode:
-    st.markdown("<style>body { background-color: #111; color: white; }</style>", unsafe_allow_html=True)
+# --- Preset 12V Devices ---
+preset_devices = [
+    {"name": "LED Puck Lights", "watts": 12, "hours": 6, "enabled": True},
+    {"name": "LED Strip Light", "watts": 6, "hours": 4, "enabled": True},
+    {"name": "Reading Light", "watts": 3, "hours": 2, "enabled": False},
+    {"name": "Compressor Fridge", "watts": 50, "hours": 8, "enabled": True},
+    {"name": "MaxxFan", "watts": 30, "hours": 4, "enabled": True},
+    {"name": "Diesel Heater", "watts": 20, "hours": 2, "enabled": True},
+    {"name": "Water Pump", "watts": 50, "hours": 0.2, "enabled": False},
+    {"name": "Phone Charging", "watts": 10, "hours": 2, "enabled": True},
+    {"name": "Tablet Charging", "watts": 15, "hours": 1, "enabled": False},
+    {"name": "Router (GL.iNet)", "watts": 5, "hours": 24, "enabled": True},
+    {"name": "Renogy One Core", "watts": 2, "hours": 24, "enabled": True}
+]
 
-# --- ALFRED INTRO ---
-st.title("Alfred – Campervan Power Budget Calculator")
-
-with st.expander("Meet Alfred – Your Off-Grid Power Assistant", expanded=True):
-    st.markdown("""
-    **Alfred** (Adventure Logistics Formulation & Renogy Energy Dashboard) is your on-board AI energy butler –  
-    balancing solar, battery, and device usage so you can focus on the road ahead.
-    """)
-
-# --- BATTERY & POWER SELECTION ---
-st.sidebar.header("Battery & Power Source")
-
-battery_option = st.sidebar.select_slider(
-    "Select Renogy Battery Bank Size",
-    options=["1 Battery (2.4kWh)", "2 Batteries (4.8kWh)", "3 Batteries (7.2kWh)", "4 Batteries (9.6kWh)"],
-    value="3 Batteries (7.2kWh)"
-)
-battery_count = int(battery_option[0])
+# --- Sidebar Config ---
+st.sidebar.header("Battery & Input Settings")
+battery_count = st.sidebar.slider("Renogy 200Ah Batteries", 1, 4, 3)
 battery_wh = battery_count * 200 * 12
 
-eco_flow_toggle = st.sidebar.checkbox("Include EcoFlow Delta Pro (3.6kWh)")
-total_capacity_wh = battery_wh + (3600 if eco_flow_toggle else 0)
+eco_flow_toggle = st.sidebar.checkbox("Add EcoFlow Delta Pro (3.6kWh)")
+total_capacity = battery_wh + (3600 if eco_flow_toggle else 0)
 
-# --- SOLAR INPUTS ---
-st.sidebar.header("Solar Input")
-num_panels = st.sidebar.number_input("Number of Panels", min_value=1, max_value=10, value=2, step=1)
-watts_per_panel = st.sidebar.number_input("Watts per Panel", min_value=50, max_value=500, value=200, step=10)
-total_solar_watts = num_panels * watts_per_panel
-solar_hours = st.sidebar.slider("Estimated Sunlight Hours per Day", 0, 10, 4)
-solar_input_wh = total_solar_watts * solar_hours
+solar_watts = st.sidebar.number_input("Solar Panel Total (W)", value=400, step=10)
+solar_hours = st.sidebar.slider("Solar Hours per Day", 0, 10, 4)
+solar_input_daily = solar_watts * solar_hours
 
-# --- ALTERNATOR INPUT ---
-st.sidebar.header("Alternator Charging")
-drive_time_option = st.sidebar.radio("Driving Time", ["30 mins", "1 hour", "Custom"])
-if drive_time_option == "30 mins":
-    drive_hours = 0.5
-elif drive_time_option == "1 hour":
-    drive_hours = 1
-else:
-    drive_hours = st.sidebar.slider("Custom Drive Time (hours)", 0.0, 5.0, 0.5, step=0.1)
-alternator_input_wh = 480 * drive_hours
+drive_hours = st.sidebar.slider("Drive Time per Day (hrs)", 0.0, 5.0, 0.5, step=0.1)
+alternator_input_daily = 480 * drive_hours  # 40A * 12V
 
-# --- DEVICE INPUT (DYNAMIC) ---
-st.header("Device Usage")
-if "devices" not in st.session_state:
-    st.session_state.devices = []
+# --- Main Interface ---
+st.title("Alfred v5 – Campervan Power Calculator")
 
-add_device = st.button("Add Another Device")
+st.subheader("Select Devices to Include")
+show_enabled_only = st.checkbox("Show only selected devices", value=False)
 
-if add_device or len(st.session_state.devices) == 0:
-    st.session_state.devices.append({"name": "", "watts": 100, "hours": 1.0})
+# --- Device Table with Toggle ---
+enabled_devices = []
+with st.form("device_form"):
+    for i, device in enumerate(preset_devices):
+        if not show_enabled_only or device["enabled"]:
+            cols = st.columns([3, 1, 1, 1])
+            with cols[0]:
+                name = st.text_input("Name", value=device["name"], key=f"name_{i}")
+            with cols[1]:
+                watts = st.number_input("Watts", min_value=1, value=device["watts"], key=f"watts_{i}")
+            with cols[2]:
+                hours = st.number_input("Hours/day", min_value=0.0, max_value=24.0, step=0.5, value=device["hours"], key=f"hours_{i}")
+            with cols[3]:
+                enabled = st.checkbox("On?", value=device["enabled"], key=f"enabled_{i}")
+            if enabled:
+                enabled_devices.append({"name": name, "watts": watts, "hours": hours})
+    st.form_submit_button("Update Devices")
 
-updated_devices = []
+# --- Add Custom Device ---
+st.markdown("### Add Custom Device")
+with st.form("custom_device"):
+    c_name = st.text_input("Device Name")
+    c_watts = st.number_input("Watts", min_value=1, value=10, step=1)
+    c_hours = st.number_input("Hours/day", min_value=0.0, max_value=24.0, step=0.5)
+    add_custom = st.form_submit_button("Add Device")
+    if add_custom and c_name:
+        enabled_devices.append({"name": c_name, "watts": c_watts, "hours": c_hours})
+        st.success(f"Added {c_name} to your setup!")
 
-for i, device in enumerate(st.session_state.devices):
-    with st.expander(f"Device {i + 1}", expanded=False):
-        name = st.text_input("Device Name", value=device["name"], key=f"name_{i}")
-        watts = st.number_input("Power draw (Watts)", value=device["watts"], step=1, format="%i", key=f"watts_{i}")
-        col1, col2 = st.columns([2, 3])
-        with col1:
-            hours = st.number_input("Usage (hours/day)", min_value=0.0, max_value=24.0, step=0.5, key=f"hours_{i}")
-        with col2:
-            preset = st.radio(
-                "Quick-select:",
-                ["None", "Working day (10h)", "Mealtimes (0.5h)", "Daytime (14h)", "All the time (24h)"],
-                horizontal=True,
-                key=f"preset_{i}"
-            )
-            if preset == "Working day (10h)":
-                hours = 10
-            elif preset == "Mealtimes (0.5h)":
-                hours = 0.5
-            elif preset == "Daytime (14h)":
-                hours = 14
-            elif preset == "All the time (24h)":
-                hours = 24
-        updated_devices.append((name, watts, hours))
+# --- Power Calculations ---
+df = pd.DataFrame(enabled_devices)
+df["Daily_Wh"] = df["watts"] * df["hours"]
+daily_usage = df["Daily_Wh"].sum()
+daily_input = solar_input_daily + alternator_input_daily
+net_daily = daily_input - daily_usage
 
-# --- CALCULATIONS ---
-daily_consumption = sum(w * h for _, w, h in updated_devices)
-daily_input = solar_input_wh + alternator_input_wh
-net_daily = daily_consumption - daily_input
+# --- Summary ---
+st.subheader("System Summary")
+st.write(f"**Total Battery Capacity:** {total_capacity} Wh")
+st.write(f"**Daily Usage:** {daily_usage:.0f} Wh")
+st.write(f"**Daily Input (Solar + Alternator):** {daily_input:.0f} Wh")
+st.write(f"**Net Daily Power Balance:** {net_daily:.0f} Wh")
 
-# --- RESULTS DISPLAY ---
-st.header("Results Overview")
-col1, col2, col3 = st.columns(3)
-col1.metric("Total Capacity", f"{total_capacity_wh} Wh")
-col2.metric("Total Daily Usage", f"{daily_consumption:.0f} Wh")
-col3.metric("Daily Input (Solar + Drive)", f"{daily_input:.0f} Wh")
+# --- Chart over 7 Days ---
+days = list(range(1, 8))
+usage = [daily_usage] * 7
+solar_input = [solar_input_daily] * 7
+alt_input = [alternator_input_daily] * 7
+total_input = [s + a for s, a in zip(solar_input, alt_input)]
+net_balance = [inp - out for inp, out in zip(total_input, usage)]
 
-st.subheader("Alfred System Status")
-percent_used = min((daily_consumption / total_capacity_wh) * 100, 100)
-runtime_days = total_capacity_wh / max(daily_consumption - daily_input, 1)
-st.progress(min(percent_used / 100, 1.0))
-st.write(f"**Daily usage is {percent_used:.1f}% of available capacity.**")
-st.write(f"**Estimated runtime: {int(runtime_days)} days**")
+df_chart = pd.DataFrame({
+    "Day": days,
+    "Usage": usage,
+    "Solar": solar_input,
+    "Alternator": alt_input
+})
 
-# --- Device Table ---
-df = pd.DataFrame(updated_devices, columns=["Device", "Watts", "Hours per Day"])
-df["Daily Wh"] = df["Watts"] * df["Hours per Day"]
-st.dataframe(df)
-
-# --- MOUNTAIN & VAN THEMED FOOTER ---
-st.markdown("---")
-st.markdown("### ⛰️  Alfred by Vanlight.ai  🚐")
-st.markdown("Simple off-grid planning for adventurous souls.")
+st.subheader("7-Day Power Profile")
+import matplotlib.pyplot as plt
+fig, ax = plt.subplots()
+ax.bar(df_chart["Day"], df_chart["Usage"], label="Usage", color="red")
+ax.bar(df_chart["Day"], df_chart["Solar"], label="Solar", bottom=df_chart["Alternator"], color="gold")
+ax.bar(df_chart["Day"], df_chart["Alternator"], label="Alternator", bottom=0, color="blue")
+ax.set_ylabel("Watt-Hours")
+ax.set_xlabel("Day")
+ax.set_title("Daily Usage vs Input")
+ax.legend()
+st.pyplot(fig)
