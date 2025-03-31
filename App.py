@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 import altair as alt
 
-st.set_page_config(page_title="Alfred – Power Calculator v7.1", layout="wide")
+st.set_page_config(page_title="Alfred – Power Calculator v7.2", layout="wide")
 
 # --- Preset 12V Devices ---
 preset_devices = [
