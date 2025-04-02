@@ -44,7 +44,7 @@ show_renogy = st.sidebar.checkbox("Enable Renogy 12V System", value=True)
 if show_renogy:
     renogy_batteries = st.sidebar.slider("Renogy 200Ah Batteries", 1, 4, 3)
     renogy_wh = renogy_batteries * 200 * 12
-    renogy_solar = st.sidebar.number_input("Renogy Solar (W)", value=400, step=10)
+    renogy_solar = st.sidebar.number_input("Renogy Solar (W)", value=360, step=10)
     drive_hours = st.sidebar.slider("Drive Time (hrs/day)", 0.0, 5.0, 0.5, step=0.1)
     alternator_input = 480 * drive_hours  # 40A * 12V
     renogy_input = (renogy_solar * solar_hours) + alternator_input
