@@ -1,13 +1,14 @@
-# ALFRED v8 – Dual Power System Campervan Calculator
+# ALFRED v8.1 – Dual System Campervan Power Calculator with System Components & Dev Mode
 import streamlit as st
 import pandas as pd
 import altair as alt
 import random
 import time
+import inspect
 
-st.set_page_config(page_title="Alfred v8 – Campervan Power Calculator", layout="wide")
+st.set_page_config(page_title="Alfred v8.1 – Campervan Power Calculator", layout="wide")
 
-# --- Default Presets ---
+# --- Device Presets ---
 renogy_presets = [
     {"name": "LED Puck Lights", "watts": 12, "hours": 6, "enabled": True},
     {"name": "Laptop (DC)", "watts": 65, "hours": 8, "enabled": True},
@@ -21,25 +22,23 @@ renogy_presets = [
 ]
 
 ecoflow_presets = [
-    {"name": "Air Fryer", "watts": 800, "hours": 0.25, "enabled": True},
-    {"name": "Nespresso", "watts": 1200, "hours": 0.05, "enabled": True},
-    {"name": "Induction Hob", "watts": 1800, "hours": 0.45, "enabled": True},
+    {"name": "Air Fryer", "watts": 800, "hours": 0.5, "enabled": True},
+    {"name": "Nespresso", "watts": 1200, "hours": 0.3, "enabled": True},
+    {"name": "Induction Hob", "watts": 1800, "hours": 1.0, "enabled": True},
     {"name": "Hairdryer", "watts": 1000, "hours": 0.2, "enabled": False},
-    {"name": "Electric Kettle", "watts": 800, "hours": 0.2, "enabled": True},
-    {"name": "Microwave", "watts": 800, "hours": 0.05, "enabled": False},
-    {"name": "Laptop Charger (AC)", "watts": 90, "hours": 3.0, "enabled": True}
+    {"name": "Electric Kettle", "watts": 1200, "hours": 0.3, "enabled": True},
+    {"name": "Microwave", "watts": 1000, "hours": 0.5, "enabled": False},
+    {"name": "Laptop Charger (AC)", "watts": 90, "hours": 4.0, "enabled": True}
 ]
 
-# --- Solar Hours Presets ---
 solar_efficiency_map = {"Low": 1.5, "Medium": 3.5, "High": 5.5}
 
-# --- Sidebar ---
+# --- Sidebar Config ---
 st.sidebar.header("System Configuration")
 
 solar_eff_level = st.sidebar.selectbox("UK Solar Efficiency", options=list(solar_efficiency_map.keys()), index=1)
 solar_hours = solar_efficiency_map[solar_eff_level]
 
-# Renogy config
 show_renogy = st.sidebar.checkbox("Enable Renogy 12V System", value=True)
 if show_renogy:
     renogy_batteries = st.sidebar.slider("Renogy 200Ah Batteries", 1, 4, 3)
@@ -51,7 +50,6 @@ if show_renogy:
 else:
     renogy_wh, renogy_input = 0, 0
 
-# EcoFlow config
 show_ecoflow = st.sidebar.checkbox("Enable EcoFlow 240V System", value=True)
 if show_ecoflow:
     ecoflow_wh = 3600
@@ -59,10 +57,11 @@ if show_ecoflow:
     ecoflow_input = ecoflow_solar * solar_hours
 else:
     ecoflow_wh, ecoflow_input = 0, 0
+    
+    # --- Device Tabs ---
+tab1, tab2, tab3 = st.tabs(["Renogy Devices", "EcoFlow Devices", "System Components"])
 
-# --- Tabs for Devices ---
-tab1, tab2 = st.tabs(["Renogy Devices", "EcoFlow Devices"])
-
+# --- Renogy Devices Tab ---
 with tab1:
     st.subheader("Renogy 12V Devices")
     if st.button("Quick Add Renogy Presets"):
@@ -81,6 +80,7 @@ with tab1:
         st.session_state.renogy_devices = renogy_devices
         st.form_submit_button("Update Renogy Devices")
 
+# --- EcoFlow Devices Tab ---
 with tab2:
     st.subheader("EcoFlow 240V Devices")
     if st.button("Quick Add EcoFlow Presets"):
@@ -113,7 +113,7 @@ total_input = renogy_input + ecoflow_input
 total_usage = renogy_usage + ecoflow_usage
 net_balance = total_input - total_usage
 
-# --- Combined Summary ---
+# --- Summary Display ---
 st.header("Alfred System Summary")
 
 st.write(f"**Total System Capacity:** {total_capacity:.0f} Wh ({total_capacity / 12:.1f} Ah)")
@@ -121,7 +121,7 @@ st.write(f"**Total Daily Usage:** {total_usage:.0f} Wh ({total_usage / 12:.1f} A
 st.write(f"**Total Daily Input:** {total_input:.0f} Wh ({total_input / 12:.1f} Ah)")
 st.write(f"**Net Power Balance:** {net_balance:.0f} Wh ({net_balance / 12:.1f} Ah)")
 
-# --- Visual Battery Indicator ---
+# --- Battery Endurance ---
 st.subheader("Battery Endurance")
 if total_usage <= total_input:
     fill = 100
@@ -135,16 +135,15 @@ else:
 st.markdown(f"**{emoji} {status}**")
 st.progress(int(fill))
 
-# --- EV Recharge Estimate (EcoFlow only) ---
+# --- EV Recharge Estimate ---
 if show_ecoflow:
     st.subheader("EcoFlow EV Recharge Estimate")
     missing_wh = max(0, ecoflow_wh - ecoflow_input)
-    ev_recharge_time = missing_wh / 7000  # Assume 7kW charger
-    st.write(f"To recharge your EcoFlow from solar input to full using a 7kW EV charger would take **{ev_recharge_time:.2f} hours**.")
+    ev_recharge_time = missing_wh / 7000  # 7kW EV charger
+    st.write(f"To recharge your EcoFlow using a 7kW EV charger would take approx **{ev_recharge_time:.2f} hours**.")
 
 # --- Daily Power Chart ---
 st.subheader("Daily Power Distribution")
-
 df_chart = pd.DataFrame({
     "Source": ["Renogy Input", "EcoFlow Input", "Renogy Usage", "EcoFlow Usage"],
     "Wh": [renogy_input, ecoflow_input, -renogy_usage, -ecoflow_usage]
@@ -160,26 +159,87 @@ bar = alt.Chart(df_chart).mark_bar().encode(
 
 st.altair_chart(bar, use_container_width=True)
 
-# --- Rotating Footer Quote ---
-quotes = [
-    "“Because it’s there.” – George Mallory",
-    "“The best view comes after the hardest climb.” – Unknown",
-    "“It is not the mountain we conquer, but ourselves.” – Sir Edmund Hillary",
-    "“Getting to the top is optional. Getting down is mandatory.” – Ed Viesturs",
-    "“In every walk with nature, one receives far more than he seeks.” – John Muir",
-    "“Only those who risk going too far can possibly find out how far they can go.” – T.S. Eliot",
-    "“Mountains teach that not everything in life can be rationally explained.” – Aleksander Lwow",
-    "“Climb the mountain not to plant your flag, but to embrace the challenge.” – David McCullough Jr.",
-    "“There are no shortcuts to any place worth going.” – Beverly Sills",
-    "“A man does not climb a mountain without bringing some of it away with him.” – Martin Conway"
-]
+# --- System Components Tab ---
+with tab3:
+    st.subheader("System Components")
+    components = [
+        {
+            "name": "Renogy 200Ah Core Battery (x3)",
+            "desc": "Primary 12V lithium storage bank",
+            "fuse": "400A ANL main fuse",
+            "wire": "2/0 AWG tinned copper",
+            "placement": "Between batteries and busbar"
+        },
+        {
+            "name": "EcoFlow Delta Pro",
+            "desc": "Standalone 240V power system with internal BMS",
+            "fuse": "None required",
+            "wire": "Proprietary",
+            "placement": "AC appliances direct via inverter"
+        },
+        {
+            "name": "Renogy 500A Combiner Box",
+            "desc": "Connects 3x ShadowFlux 120W panels to system with integrated monitoring",
+            "fuse": "20A MC4 input fuses",
+            "wire": "10 AWG solar cable",
+            "placement": "Between panels and MPPT"
+        },
+        {
+            "name": "Renogy Smart Shunt",
+            "desc": "Monitors battery state of charge, integrates with One Core",
+            "fuse": "1A inline",
+            "wire": "16 AWG power wire",
+            "placement": "Negative busbar"
+        },
+        {
+            "name": "Renogy One Core Display",
+            "desc": "Central monitor for all Renogy system stats",
+            "fuse": "Not required (low current)",
+            "wire": "16–18 AWG",
+            "placement": "Inside living area"
+        },
+        {
+            "name": "Renogy 40A DC-DC Charger",
+            "desc": "Charges Renogy bank from vehicle alternator",
+            "fuse": "60A on both sides",
+            "wire": "4 AWG",
+            "placement": "Between starter and leisure batteries"
+        },
+        {
+            "name": "Victron Orion-Tr 12V→24V",
+            "desc": "Cross-charges EcoFlow from Renogy in emergencies",
+            "fuse": "40A in, 20A out",
+            "wire": "8 AWG",
+            "placement": "Renogy 12V to EcoFlow XT60i solar input"
+        }
+    ]
 
+    for comp in components:
+        with st.expander(comp["name"]):
+            st.markdown(f"**Description:** {comp['desc']}")
+            st.markdown(f"**Recommended Fuse:** {comp['fuse']}")
+            st.markdown(f"**Wire Gauge:** {comp['wire']}")
+            st.markdown(f"**Placement Notes:** {comp['placement']}")
+
+# --- Version Timeline Footer ---
 st.markdown("---")
-if st.button("Start Quote Rotation"):
-    quote_box = st.empty()
-    for _ in range(100):
-        quote_box.markdown(
-            f"<div style='text-align: center; font-style: italic; opacity: 0.6;'>{random.choice(quotes)}</div>",
-            unsafe_allow_html=True
-        )
-        time.sleep(5)
+st.markdown("### Alfred Version Timeline")
+st.markdown("""
+**v8.1** – *“The Wiring Whisperer”* – Apr 2025  
+> System Components tab added with install notes, fuse ratings, and wire sizes.  
+> Footer redesigned as a readable timeline.  
+> Secret Dev Mode toggle added to reveal app code.
+
+**v8.0** – *“Alfred Goes Dual”* – Apr 2025  
+> Added EcoFlow system with solar input, power breakdown, EV charge estimates, and tabbed UI.
+
+**v7.2** – *“Visual Vibes”* – Mar 2025  
+> Introduced battery endurance visuals, quote rotation, and improved layout.
+
+**v7.0** – *“Alfred Awakens”* – Mar 2025  
+> First public version of the Renogy 12V calculator with editable device logic.
+""")
+
+# --- Dev Mode Reveal ---
+with st.expander("**Dev Mode: View App Code**"):
+    st.code(inspect.getsource(inspect.currentframe().f_globals['__loader__'].load_module("__main__")))
