@@ -178,11 +178,25 @@ with tab3:
             "placement": "AC appliances direct via inverter"
         },
         {
-            "name": "Renogy 500A Combiner Box",
-            "desc": "Connects 3x ShadowFlux 120W panels to system with integrated monitoring",
-            "fuse": "20A MC4 input fuses",
+            "name": "Renogy ShadowFlux 120W Panels (x3, 360W)",
+            "desc": "Flat-mounted, anti-shade solar panels",
+            "fuse": "20A inline MC4 fuses",
             "wire": "10 AWG solar cable",
-            "placement": "Between panels and MPPT"
+            "placement": "Panels to MPPT input"
+        },
+        {
+            "name": "Renogy Rover Li 40A MPPT Controller",
+            "desc": "Solar charge controller for lithium system",
+            "fuse": "40A on output to battery",
+            "wire": "6 AWG tinned copper",
+            "placement": "Between solar array and battery combiner box"
+        },
+        {
+            "name": "Renogy 500A Combiner Box with Comms",
+            "desc": "Connects solar/controller to battery, enables smart monitoring",
+            "fuse": "Internal bus protection",
+            "wire": "2 AWG to shunt",
+            "placement": "Between MPPT and battery/shunt"
         },
         {
             "name": "Renogy Smart Shunt",
@@ -240,6 +254,10 @@ st.markdown("""
 > First public version of the Renogy 12V calculator with editable device logic.
 """)
 
-# --- Dev Mode Reveal ---
+# --- Dev Mode Toggle (Safe Version) ---
 with st.expander("**Dev Mode: View App Code**"):
-    st.code(inspect.getsource(inspect.currentframe().f_globals['__loader__'].load_module("__main__")))
+    try:
+        with open(__file__, "r") as f:
+            st.code(f.read())
+    except:
+        st.warning("Dev Mode unavailable in this environment. Try running locally.")
