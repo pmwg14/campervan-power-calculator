@@ -21,13 +21,13 @@ renogy_presets = [
 ]
 
 ecoflow_presets = [
-    {"name": "Air Fryer", "watts": 800, "hours": 0.5, "enabled": True},
-    {"name": "Nespresso", "watts": 1200, "hours": 0.3, "enabled": True},
-    {"name": "Induction Hob", "watts": 1800, "hours": 1.0, "enabled": True},
+    {"name": "Air Fryer", "watts": 800, "hours": 0.25, "enabled": True},
+    {"name": "Nespresso", "watts": 1200, "hours": 0.05, "enabled": True},
+    {"name": "Induction Hob", "watts": 1800, "hours": 0.45, "enabled": True},
     {"name": "Hairdryer", "watts": 1000, "hours": 0.2, "enabled": False},
-    {"name": "Electric Kettle", "watts": 1200, "hours": 0.3, "enabled": True},
-    {"name": "Microwave", "watts": 1000, "hours": 0.5, "enabled": False},
-    {"name": "Laptop Charger (AC)", "watts": 90, "hours": 4.0, "enabled": True}
+    {"name": "Electric Kettle", "watts": 800, "hours": 0.2, "enabled": True},
+    {"name": "Microwave", "watts": 800, "hours": 0.05, "enabled": False},
+    {"name": "Laptop Charger (AC)", "watts": 90, "hours": 3.0, "enabled": True}
 ]
 
 # --- Solar Hours Presets ---
